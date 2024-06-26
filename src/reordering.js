@@ -1,17 +1,18 @@
 import { getBidiCharType, TRAILING_TYPES } from './charTypes.js'
 import { getMirroredCharacter } from './mirroring.js'
+import { stringToArray } from './util/stringToArray.js'
 
 /**
  * Given a start and end denoting a single line within a string, and a set of precalculated
  * bidi embedding levels, produce a list of segments whose ordering should be flipped, in sequence.
- * @param {string} string - the full input string
+ * @param {string[]} characters - an array of character strings
  * @param {GetEmbeddingLevelsResult} embeddingLevelsResult - the result object from getEmbeddingLevels
- * @param {number} [start] - first character in a subset of the full string
- * @param {number} [end] - last character in a subset of the full string
+ * @param {number} [start] - first character in a subset of the full characters array
+ * @param {number} [end] - last character in a subset of the full characters array
  * @return {number[][]} - the list of start/end segments that should be flipped, in order.
  */
-export function getReorderSegments(string, embeddingLevelsResult, start, end) {
-  let strLen = string.length
+export function getReorderSegments(characters, embeddingLevelsResult, start, end) {
+  let strLen = characters.length
   start = Math.max(0, start == null ? 0 : +start)
   end = Math.min(strLen - 1, end == null ? strLen - 1 : +end)
 
@@ -25,7 +26,7 @@ export function getReorderSegments(string, embeddingLevelsResult, start, end) {
 
       // 3.4 L1.4: Reset any sequence of whitespace characters and/or isolate formatting characters at the
       // end of the line to the paragraph level.
-      for (let i = lineEnd; i >= lineStart && (getBidiCharType(string[i]) & TRAILING_TYPES); i--) {
+      for (let i = lineEnd; i >= lineStart && (getBidiCharType(characters[i]) & TRAILING_TYPES); i--) {
         lineLevels[i] = paragraph.level
       }
 
@@ -57,21 +58,21 @@ export function getReorderSegments(string, embeddingLevelsResult, start, end) {
 }
 
 /**
- * @param {string} string
+ * @param {array} characters
  * @param {GetEmbeddingLevelsResult} embedLevelsResult
  * @param {number} [start]
  * @param {number} [end]
- * @return {string} the new string with bidi segments reordered
+ * @return {array} a new array with bidi segments reordered
  */
-export function getReorderedString(string, embedLevelsResult, start, end) {
-  const indices = getReorderedIndices(string, embedLevelsResult, start, end)
-  const chars = [...string]
+export function getReorderedCharacters(characters, embedLevelsResult, start, end) {
+  const indices = getReorderedIndices(characters, embedLevelsResult, start, end)
+  let result = [];
   indices.forEach((charIndex, i) => {
-    chars[i] = (
-      (embedLevelsResult.levels[charIndex] & 1) ? getMirroredCharacter(string[charIndex]) : null
-    ) || string[charIndex]
+    result[i] = (
+      (embedLevelsResult.levels[charIndex] & 1) ? getMirroredCharacter(characters[charIndex]) : null
+    ) || characters[charIndex]
   })
-  return chars.join('')
+  return result
 }
 
 /**
@@ -79,13 +80,24 @@ export function getReorderedString(string, embedLevelsResult, start, end) {
  * @param {GetEmbeddingLevelsResult} embedLevelsResult
  * @param {number} [start]
  * @param {number} [end]
+ * @return {string} the new string with bidi segments reordered
+ */
+export function getReorderedString(string, embedLevelsResult, start, end) {
+  return getReorderedCharacters(stringToArray(string), embedLevelsResult, start, end).join('')
+}
+
+/**
+ * @param {string[]} characters - an array of character strings
+ * @param {GetEmbeddingLevelsResult} embedLevelsResult
+ * @param {number} [start]
+ * @param {number} [end]
  * @return {number[]} an array with character indices in their new bidi order
  */
-export function getReorderedIndices(string, embedLevelsResult, start, end) {
-  const segments = getReorderSegments(string, embedLevelsResult, start, end)
+export function getReorderedIndices(characters, embedLevelsResult, start, end) {
+  const segments = getReorderSegments(characters, embedLevelsResult, start, end)
   // Fill an array with indices
   const indices = []
-  for (let i = 0; i < string.length; i++) {
+  for (let i = 0; i < characters.length; i++) {
     indices[i] = i
   }
   // Reverse each segment in order

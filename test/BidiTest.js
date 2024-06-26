@@ -72,9 +72,10 @@ module.exports.runBidiTest = function (bidi) {
         if (testFilter && testFilter(lineIdx + 1, paraDir) === false) continue
 
         const start = performance.now()
-        const embedLevelsResult = bidi.getEmbeddingLevels(inputString, paraDir)
+        const characters = inputString.split(''); //bidi.stringToArray(inputString)
+        const embedLevelsResult = bidi.getEmbeddingLevelsForCharacters(characters.slice(), paraDir)
         const {levels, paragraphs} = embedLevelsResult
-        let reordered = bidi.getReorderedIndices(inputString, embedLevelsResult)
+        let reordered = bidi.getReorderedIndices(characters.slice(), embedLevelsResult)
         totalTime += performance.now() - start
         reordered = reordered.filter(i => expectedLevels[i] !== 'x') //those with indeterminate level are ommitted
 

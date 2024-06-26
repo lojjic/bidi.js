@@ -8,6 +8,7 @@ import {
   TYPES
 } from './charTypes.js'
 import { closingToOpeningBracket, getCanonicalBracket, openingToClosingBracket } from './brackets.js'
+import { stringToArray } from './util/stringToArray.js'
 
 // Local type aliases
 const {
@@ -42,22 +43,36 @@ const {
  */
 
 /**
- * This function applies the Bidirectional Algorithm to a string, returning the resolved embedding levels
+ * This function applies the Bidirectional Algorithm to a string of characters, returning the resolved embedding levels
  * in a single Uint8Array plus a list of objects holding each paragraph's start and end indices and resolved
  * base embedding level.
  *
- * @param {string} string - The input string
+ * @param {string} string - a string of characters
  * @param {"ltr"|"rtl"|"auto"} [baseDirection] - Use "ltr" or "rtl" to force a base paragraph direction,
  *        otherwise a direction will be chosen automatically from each paragraph's contents.
  * @return {GetEmbeddingLevelsResult}
  */
 export function getEmbeddingLevels (string, baseDirection) {
+  return getEmbeddingLevelsForCharacters(stringToArray(string), baseDirection);
+}
+
+/**
+ * This function applies the Bidirectional Algorithm to an array of characters, returning the resolved embedding levels
+ * in a single Uint8Array plus a list of objects holding each paragraph's start and end indices and resolved
+ * base embedding level.
+ *
+ * @param {string[]} characters - an array of character strings
+ * @param {"ltr"|"rtl"|"auto"} [baseDirection] - Use "ltr" or "rtl" to force a base paragraph direction,
+ *        otherwise a direction will be chosen automatically from each paragraph's contents.
+ * @return {GetEmbeddingLevelsResult}
+ */
+export function getEmbeddingLevelsForCharacters (characters, baseDirection) {
   const MAX_DEPTH = 125
 
   // Start by mapping all characters to their unicode type, as a bitmask integer
-  const charTypes = new Uint32Array(string.length)
-  for (let i = 0; i < string.length; i++) {
-    charTypes[i] = getBidiCharType(string[i])
+  const charTypes = new Uint32Array(characters.length)
+  for (let i = 0; i < characters.length; i++) {
+    charTypes[i] = getBidiCharType(characters[i])
   }
 
   const charTypeCounts = new Map() //will be cleared at start of each paragraph
@@ -74,18 +89,18 @@ export function getEmbeddingLevels (string, baseDirection) {
     }
   }
 
-  const embedLevels = new Uint8Array(string.length)
+  const embedLevels = new Uint8Array(characters.length)
   const isolationPairs = new Map() //init->pdi and pdi->init
 
   // === 3.3.1 The Paragraph Level ===
   // 3.3.1 P1: Split the text into paragraphs
   const paragraphs = [] // [{start, end, level}, ...]
   let paragraph = null
-  for (let i = 0; i < string.length; i++) {
+  for (let i = 0; i < characters.length; i++) {
     if (!paragraph) {
       paragraphs.push(paragraph = {
         start: i,
-        end: string.length - 1,
+        end: characters.length - 1,
         // 3.3.1 P2-P3: Determine the paragraph level
         level: baseDirection === 'rtl' ? 1 : baseDirection === 'ltr' ? 0 : determineAutoEmbedLevel(i, false)
       })
@@ -477,7 +492,7 @@ export function getEmbeddingLevels (string, baseDirection) {
             // type, as that may have been changed earlier. This doesn't seem to be explicitly
             // called out in the spec, but is required for passage of certain tests.
             if (charTypes[seqIndices[si]] & NEUTRAL_ISOLATE_TYPES) {
-              const char = string[seqIndices[si]]
+              const char = characters[seqIndices[si]]
               let oppositeBracket
               // Opening bracket
               if (openingToClosingBracket(char) !== null) {
@@ -553,7 +568,7 @@ export function getEmbeddingLevels (string, baseDirection) {
             if (useStrongType !== embedDirection) {
               for (let si = openSeqIdx + 1; si < seqIndices.length; si++) {
                 if (!(charTypes[seqIndices[si]] & BN_LIKE_TYPES)) {
-                  if (getBidiCharType(string[seqIndices[si]]) & TYPE_NSM) {
+                  if (getBidiCharType(characters[seqIndices[si]]) & TYPE_NSM) {
                     charTypes[seqIndices[si]] = useStrongType
                   }
                   break
@@ -563,7 +578,7 @@ export function getEmbeddingLevels (string, baseDirection) {
             if (useStrongType !== embedDirection) {
               for (let si = closeSeqIdx + 1; si < seqIndices.length; si++) {
                 if (!(charTypes[seqIndices[si]] & BN_LIKE_TYPES)) {
-                  if (getBidiCharType(string[seqIndices[si]]) & TYPE_NSM) {
+                  if (getBidiCharType(characters[seqIndices[si]]) & TYPE_NSM) {
                     charTypes[seqIndices[si]] = useStrongType
                   }
                   break
@@ -636,8 +651,8 @@ export function getEmbeddingLevels (string, baseDirection) {
       // 3.4 L1.1-4: Reset the embedding level of segment/paragraph separators, and any sequence of whitespace or
       // isolate formatting characters preceding them or the end of the paragraph, to the paragraph level.
       // NOTE: this will also need to be applied to each individual line ending after line wrapping occurs.
-      if (i === paragraph.end || getBidiCharType(string[i]) & (TYPE_S | TYPE_B)) {
-        for (let j = i; j >= 0 && (getBidiCharType(string[j]) & TRAILING_TYPES); j--) {
+      if (i === paragraph.end || getBidiCharType(characters[i]) & (TYPE_S | TYPE_B)) {
+        for (let j = i; j >= 0 && (getBidiCharType(characters[j]) & TRAILING_TYPES); j--) {
           embedLevels[j] = paragraph.level
         }
       }
@@ -653,7 +668,7 @@ export function getEmbeddingLevels (string, baseDirection) {
 
   function determineAutoEmbedLevel (start, isFSI) {
     // 3.3.1 P2 - P3
-    for (let i = start; i < string.length; i++) {
+    for (let i = start; i < characters.length; i++) {
       const charType = charTypes[i]
       if (charType & (TYPE_R | TYPE_AL)) {
         return 1
@@ -663,7 +678,7 @@ export function getEmbeddingLevels (string, baseDirection) {
       }
       if (charType & ISOLATE_INIT_TYPES) {
         const pdi = indexOfMatchingPDI(i)
-        i = pdi === -1 ? string.length : pdi
+        i = pdi === -1 ? characters.length : pdi
       }
     }
     return 0
@@ -672,7 +687,7 @@ export function getEmbeddingLevels (string, baseDirection) {
   function indexOfMatchingPDI (isolateStart) {
     // 3.1.2 BD9
     let isolationLevel = 1
-    for (let i = isolateStart + 1; i < string.length; i++) {
+    for (let i = isolateStart + 1; i < characters.length; i++) {
       const charType = charTypes[i]
       if (charType & TYPE_B) {
         break

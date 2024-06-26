@@ -30,9 +30,11 @@ module.exports.runBidiCharacterTest = function (bidi) {
       expectedOrder = expectedOrder.split(' ').map(s => parseInt(s, 10))
 
       const start = performance.now()
-      const embedLevelsResult = bidi.getEmbeddingLevels(input, paraDir)
+      const characters = bidi.stringToArray(input)
+      const embedLevelsResult = bidi.getEmbeddingLevelsForCharacters(characters.slice(), paraDir)
       const {levels, paragraphs} = embedLevelsResult
-      let reordered = bidi.getReorderedIndices(input, embedLevelsResult)
+      let reordered = bidi.getReorderedIndices(characters.slice(), embedLevelsResult)
+
       totalTime += performance.now() - start
 
       reordered = reordered.filter(i => expectedLevels[i] !== 'x') //those with indeterminate level are ommitted
