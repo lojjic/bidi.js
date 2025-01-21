@@ -17,8 +17,15 @@ module.exports.runBidiCharacterTest = function (bidi) {
   let totalTime = 0
 
   lines.forEach((line, lineIdx) => {
+    if (line && line.startsWith('#')) {
+      return
+    }
+    
     if (line && !line.startsWith('#')) {
       let [input, paraDir, , expectedLevels, expectedOrder] = line.split(';')
+      if (!input || !paraDir || !expectedLevels || !expectedOrder) {
+        return
+      }
 
       const inputOrig = input
       input = input.split(' ').map(d => String.fromCodePoint(parseInt(d, 16))).join('')

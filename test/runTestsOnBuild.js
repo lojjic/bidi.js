@@ -15,8 +15,8 @@ const requireFromString = require('require-from-string')
 const { code } = transformFileSync('dist/bidi.js', {
   presets: ['@babel/preset-env'] //ES5 by default
 })
-const bidiFactory = requireFromString(code, 'babelified-bidi.js')
-const bidi = bidiFactory()
+const loadedCode = requireFromString(code, 'babelified-bidi.js')
+const bidi = loadedCode.bidiFactory()
 
 console.log('Running test suite on build file...')
 const results = [
@@ -25,6 +25,3 @@ const results = [
 ]
 
 process.exit(Math.max(...results))
-
-
-

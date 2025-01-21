@@ -28,10 +28,14 @@ npm install bidi-js
 Import and initialize:
 
 ```js
-import bidiFactory from 'bidi-js'
-// or: const bidiFactory = require('bidi-js')
-
+import { bidiFactory } from 'bidi-js'
 const bidi = bidiFactory()
+
+/* or:
+      const bidiJs = require('bidi-js');
+      const bidi = bidiJs.bidiFactory(); 
+
+*/
 ```
 
 The `bidi-js` package's only export is a factory function which you _must invoke_ to return a `bidi` object; that object exposes the methods for bidi processing.
