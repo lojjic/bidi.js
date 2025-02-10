@@ -25,6 +25,3 @@ const results = [
 ]
 
 process.exit(Math.max(...results))
-
-
-
