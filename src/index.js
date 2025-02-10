@@ -1,21 +1,5 @@
-import { getEmbeddingLevels } from './embeddingLevels.js'
-import { getReorderSegments, getReorderedIndices, getReorderedString } from './reordering.js'
-import { getBidiCharType, getBidiCharTypeName } from './charTypes.js'
-import { getMirroredCharacter, getMirroredCharactersMap } from './mirroring.js'
-import { closingToOpeningBracket, openingToClosingBracket, getCanonicalBracket } from './brackets.js'
-
-export function bidiFactory() {
-    return {
-        getEmbeddingLevels,
-        getReorderSegments,
-        getReorderedIndices,
-        getReorderedString,
-        getBidiCharType,
-        getBidiCharTypeName,
-        getMirroredCharacter,
-        getMirroredCharactersMap,
-        closingToOpeningBracket,
-        openingToClosingBracket,
-        getCanonicalBracket
-    }
-}
+export { getEmbeddingLevels } from './embeddingLevels.js'
+export { getReorderSegments, getReorderedIndices, getReorderedString } from './reordering.js'
+export { getBidiCharType, getBidiCharTypeName } from './charTypes.js'
+export { getMirroredCharacter, getMirroredCharactersMap } from './mirroring.js'
+export { closingToOpeningBracket, openingToClosingBracket, getCanonicalBracket } from './brackets.js'

@@ -8,7 +8,10 @@ export default [
     input: 'src/index.js',
     output: {
       file: 'dist/bidi.js',
-      name: 'bidi'
+      format: 'iife',
+      name: 'bidi',
+      banner: `export default function bidiFactory() {`,
+      footer: `return bidi}`
     },
     plugins: [
       // Transpile down to ES5 for all build artifacts. This helps ensure that downstream
