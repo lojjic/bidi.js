@@ -48,8 +48,12 @@ module.exports.runBidiTest = function (bidi) {
   let totalTime = 0
 
   lines.forEach((line, lineIdx) => {
+    if (line && line.startsWith('#')) {
+      return
+    }
+
     if (line && !line.startsWith('#')) {
-      let match = line.match(/^@(Levels|Reorder):\s*(.*)$/)
+      let match = line.match(/^@(Levels|Reorder):\s*(.*)/)
       if (match) {
         const values = match[2].trim() ? match[2].trim().split(/\s+/).map(s => s === 'x' ? s : parseInt(s, 10)) : []
         if (match[1] === 'Levels') {
@@ -61,6 +65,9 @@ module.exports.runBidiTest = function (bidi) {
       }
 
       let [types, paraDirs] = line.split(/\s*;\s*/)
+      if (!types || !paraDirs) {
+        return
+      }
 
       types = types.trim().split(/\s+/)
       const inputString = types.map(type => CLASS_REPS[type]).join('')
