@@ -16,8 +16,8 @@ Attempts to fix these specific test cases by modifying the core algorithm result
 - **Direction:** LTR
 - **Input Codes:** `05D0 202A 202A 202C 202C 0020 0031 0020 0032` (R LRE LRE PDF PDF WS EN WS EN)
 - **Failure:**
-    - **Levels:** Expected `1 x x x x 1 2 1 2`, Received `1 1 1 1 0 0 0 0 0`
-    - **Order:** Expected `8 7 6 5 0`, Received `0 5 6 7 8`
+  - **Levels:** Expected `1 x x x x 1 2 1 2`, Received `1 1 1 1 0 0 0 0 0`
+  - **Order:** Expected `8 7 6 5 0`, Received `0 5 6 7 8`
 
 ### 2. Test Line 150
 
@@ -25,5 +25,5 @@ Attempts to fix these specific test cases by modifying the core algorithm result
 - **Direction:** RTL
 - **Input Codes:** `0061 202B 202B 202C 202C 0020 0031 0020 0032` (L RLE RLE PDF PDF WS EN WS EN)
 - **Failure:**
-    - **Levels:** Expected `2 x x x x 2 2 2 2`, Received `2 2 2 2 1 1 2 1 2`
-    - **Order:** Expected `0 5 6 7 8`, Received `8 7 6 5 0` 
+  - **Levels:** Expected `2 x x x x 2 2 2 2`, Received `2 2 2 2 1 1 2 1 2`
+  - **Order:** Expected `0 5 6 7 8`, Received `8 7 6 5 0`
