@@ -58,13 +58,18 @@ export function getEmbeddingLevels (string, baseDirection) {
   const MAX_DEPTH = 125
   const stringLength = string.length
 
-  // === Convert to code points and build index mappings ===
+  // === Convert string to code points and build index mappings ===
+  // Iterate over Unicode code points instead of UTF-16 code units
+  // to handle multibyte characters correctly according to UAX#9.
   const codePoints = Array.from(string)
   const numCodePoints = codePoints.length
+  // Map code point indices back to their starting code unit index.
   const codePointIndexToCodeUnitIndex = new Uint32Array(numCodePoints)
+  // Map code unit indices back to their corresponding code point index.
   const codeUnitIndexToCodePointIndex = new Uint32Array(stringLength)
 
   // Start by mapping all characters to their unicode type, as a bitmask integer
+  // Array sized by the number of code points.
   const charTypes = new Uint32Array(numCodePoints)
   let currentCodeUnitIndex = 0
   for (let cpIdx = 0; cpIdx < numCodePoints; cpIdx++) {
@@ -92,8 +97,9 @@ export function getEmbeddingLevels (string, baseDirection) {
     }
   }
 
+  // Array sized by the number of code points.
   const embedLevels = new Uint8Array(numCodePoints)
-  const isolationPairs = new Map() //init->pdi and pdi->init // NOTE: Will need adjustment later for code unit indices
+  const isolationPairs = new Map() // init->pdi and pdi->init
 
   // === 3.3.1 The Paragraph Level ===
   // 3.3.1 P1: Split the text into paragraphs
@@ -755,14 +761,16 @@ export function getEmbeddingLevels (string, baseDirection) {
     }
   }
 
-  // === Map levels back to code units ===
+  // === Map resolved code-point-based levels back to code units ===
+  // The public API requires levels per code unit.
   const finalLevels = new Uint8Array(stringLength);
   for(let cpIdx = 0; cpIdx < numCodePoints; cpIdx++) {
     const level = embedLevels[cpIdx];
     const codeUnitIndex = codePointIndexToCodeUnitIndex[cpIdx];
-    // Use simpler mapping assuming codePoints[cpIdx].length is reliable
     const char = codePoints[cpIdx];
+    // Assign the level to the first code unit of the character.
     finalLevels[codeUnitIndex] = level;
+    // If it's a surrogate pair (2 code units), assign the same level to the second unit.
     if (char.length === 2) {
       finalLevels[codeUnitIndex + 1] = level;
     }

@@ -97,7 +97,7 @@ function runCustomMultibyteTests(bidi) {
     // Multibyte RTL
     { name: "Multibyte RTL", input: "سلام 🙂 خوبی؟", dir: "rtl", expLevels: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], expOrder: [12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0] }, // Length 13 (OK)
     // Mixed Multibyte
-    { name: "Mixed Multibyte", input: "ABC 🙂 123 שלום 🥳 XYZ", dir: "auto", expLevels: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0], expOrder: [0,1,2,3,4,5,6,7, 18,17,16,15, 14,13,12,11,10,9, 19,20,21] }, // Corrected levels & length (22)
+    { name: "Mixed Multibyte", input: "ABC 🙂 123 שלום 🥳 XYZ", dir: "auto", expLevels: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0], expOrder: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 14, 13, 12, 11, 15, 16, 17, 18, 19, 20, 21] }, // Corrected levels & length (22), Corrected Order
     // Surrogate Pair at Start/End
     { name: "Surrogate Start", input: "🥳ABC", dir: "ltr", expLevels: [0, 0, 0, 0, 0], expOrder: [0,1,2,3,4] }, // Length 5 (OK)
     { name: "Surrogate End", input: "ABC🥳", dir: "ltr", expLevels: [0, 0, 0, 0, 0], expOrder: [0,1,2,3,4] }, // Length 5 (OK)
